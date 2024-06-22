@@ -60,20 +60,33 @@ def load_nifti_image(filepath: str) -> Optional[NumpyArray]:
         logger.error(f"Error loading NIfTI image from {filepath}: {e}")
         return None
 
-def get_center_and_margin(mask: NumpyArray, margin: int = 50) -> List[List[int]]:
+def get_center_and_margin(mask: NumpyArray, in_plane_margin: int = 50, slice_margin: int = 5) -> Tuple[List[List[int]], Tuple[int, int]]:
     coords = np.array(np.nonzero(mask))
     center = np.mean(coords, axis=1).astype(int)
     shape = mask.shape
-    return [
-        [max(0, center[i] - margin), min(shape[i], center[i] + margin)]
-        for i in range(3)
+    
+    # Calculate in-plane bounds
+    in_plane_bounds = [
+        [max(0, center[i] - in_plane_margin), min(shape[i], center[i] + in_plane_margin)]
+        for i in range(2)
     ]
+    
+    # Calculate through-plane (slice) bounds
+    slice_min = max(0, coords[2].min() - slice_margin)
+    slice_max = min(shape[2], coords[2].max() + slice_margin + 1)
+    
+    # Combine bounds
+    bounds = in_plane_bounds + [[slice_min, slice_max]]
+    
+    return bounds, (slice_min, slice_max)
+
+
 
 def crop_image(image: NumpyArray, bounds: List[List[int]]) -> NumpyArray:
     return image[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1], bounds[2][0]:bounds[2][1]]
 
 def save_slices_as_jpeg(t1_image: NumpyArray, mask_images: Dict[str, NumpyArray], 
-                        out_dir: str, prefix: str) -> int:
+                        out_dir: str, prefix: str, slice_range: Tuple[int, int]) -> int:
     slices_dir = os.path.join(out_dir, 'slices')
     os.makedirs(slices_dir, exist_ok=True)
     
@@ -86,25 +99,26 @@ def save_slices_as_jpeg(t1_image: NumpyArray, mask_images: Dict[str, NumpyArray]
         'Reader_2': cmap(1)[:3]   # Second color in the Set1 colormap
     }
     
-    for i in range(t1_image.shape[2]):
+    slice_min, slice_max = slice_range
+    for i in range(slice_min, slice_max):
         fig, axs = plt.subplots(1, 3, figsize=(15, 5))
         
         # T1 image alone
-        axs[0].imshow(np.rot90(exposure.equalize_hist(t1_image[:, :, i])), cmap='gray')
+        axs[0].imshow(np.rot90(exposure.equalize_hist(t1_image[:, :, i - slice_min])), cmap='gray')
         axs[0].axis('off')
-        axs[0].set_title('T1 Image')
+        axs[0].set_title(f'T1 Image (Slice {i})')
 
         # Reader columns
         for idx, reader in enumerate(readers):
             if reader in mask_images:
                 # T1 with reader's mask
-                axs[idx+1].imshow(np.rot90(exposure.equalize_hist(t1_image[:, :, i])), cmap='gray')
+                axs[idx+1].imshow(np.rot90(exposure.equalize_hist(t1_image[:, :, i - slice_min])), cmap='gray')
                 mask = mask_images[reader]
                 mask_rgba = np.zeros((*mask.shape[:2], 4))
                 mask_rgba[..., :3] = colors[reader]  # RGB channels
-                mask_rgba[..., 3] = np.where(mask[:, :, i] > 0, 0.5, 0)  # Alpha channel
+                mask_rgba[..., 3] = np.where(mask[:, :, i - slice_min] > 0, 0.5, 0)  # Alpha channel
                 axs[idx+1].imshow(np.rot90(mask_rgba))
-                axs[idx+1].set_title(f'T1 + {reader}')
+                axs[idx+1].set_title(f'T1 + {reader} (Slice {i})')
             else:
                 # Leave the subplot blank if reader data is absent
                 axs[idx+1].axis('off')
@@ -114,10 +128,11 @@ def save_slices_as_jpeg(t1_image: NumpyArray, mask_images: Dict[str, NumpyArray]
         fig.savefig(slice_path, bbox_inches='tight', pad_inches=0, dpi=300)
         plt.close(fig)
     
-    return t1_image.shape[2]
+    return slice_max - slice_min
+    
 
-def process_single_lesion(args: Tuple[str, Dict[str, str], str]) -> Optional[Tuple[str, int]]:
-    lesion_id, match, out_dir = args
+def process_single_lesion(args: Tuple[str, Dict[str, str], str, int, int]) -> Optional[Tuple[str, int]]:
+    lesion_id, match, out_dir, in_plane_margin, slice_margin = args
     
     try:
         t1_path = match['Underlay']
@@ -151,12 +166,12 @@ def process_single_lesion(args: Tuple[str, Dict[str, str], str]) -> Optional[Tup
 
         # Use the first available mask for bounding
         mask_for_bounds = next(iter(mask_images.values()))
-        bounds = get_center_and_margin(mask_for_bounds)
+        bounds, slice_range = get_center_and_margin(mask_for_bounds, in_plane_margin, slice_margin)
 
         cropped_t1 = crop_image(t1_image, bounds)
         cropped_masks = {reader: crop_image(mask, bounds) for reader, mask in mask_images.items()}
 
-        num_slices = save_slices_as_jpeg(cropped_t1, cropped_masks, out_dir, lesion_id)
+        num_slices = save_slices_as_jpeg(cropped_t1, cropped_masks, out_dir, lesion_id, slice_range)
         
         return lesion_id, num_slices
     except Exception as e:
@@ -169,8 +184,11 @@ def process_lesions(base_dir: str, out_dir: str, tsv_path: str) -> List[Tuple[st
     
     lesion_matches = read_lesion_matches(tsv_path)
     
-    lesion_args = [(lesion_id, match, out_dir) for lesion_id, match in lesion_matches.items()]
-    
+    in_plane_margin = int(config.get('IMAGE_PROCESSING', 'IN_PLANE_MARGIN'))
+    slice_margin = int(config.get('IMAGE_PROCESSING', 'SLICE_MARGIN'))
+
+    lesion_args = [(lesion_id, match, out_dir, in_plane_margin, slice_margin) for lesion_id, match in lesion_matches.items()]    
+        
     num_processes = cpu_count()
     with Pool(num_processes) as pool:
         lesion_results = list(tqdm(pool.imap(process_single_lesion, lesion_args), total=len(lesion_args)))
