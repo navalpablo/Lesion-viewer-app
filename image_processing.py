@@ -86,7 +86,7 @@ def crop_image(image: NumpyArray, bounds: List[List[int]]) -> NumpyArray:
     return image[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1], bounds[2][0]:bounds[2][1]]
 
 def save_slices_as_jpeg(t1_image: NumpyArray, mask_images: Dict[str, NumpyArray], 
-                        out_dir: str, prefix: str, slice_range: Tuple[int, int]) -> int:
+                        out_dir: str, lesion_id: str, slice_range: Tuple[int, int]) -> int:
     slices_dir = os.path.join(out_dir, 'slices')
     os.makedirs(slices_dir, exist_ok=True)
     
@@ -102,6 +102,9 @@ def save_slices_as_jpeg(t1_image: NumpyArray, mask_images: Dict[str, NumpyArray]
     slice_min, slice_max = slice_range
     for i in range(slice_min, slice_max):
         fig, axs = plt.subplots(1, 3, figsize=(15, 5))
+        
+        # Add main title with lesion ID
+        fig.suptitle(f'Lesion ID: {lesion_id}', fontsize=16, y=1.05)
         
         # T1 image alone
         axs[0].imshow(np.rot90(exposure.equalize_hist(t1_image[:, :, i - slice_min])), cmap='gray')
@@ -124,8 +127,11 @@ def save_slices_as_jpeg(t1_image: NumpyArray, mask_images: Dict[str, NumpyArray]
                 axs[idx+1].axis('off')
                 axs[idx+1].set_title(f'{reader} - No Data')
 
-        slice_path = os.path.join(slices_dir, f'{prefix}_{i:03d}.jpg')
-        fig.savefig(slice_path, bbox_inches='tight', pad_inches=0, dpi=300)
+        # Adjust layout to make room for the main title
+        plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+
+        slice_path = os.path.join(slices_dir, f'{lesion_id}_{i:03d}.jpg')
+        fig.savefig(slice_path, bbox_inches='tight', pad_inches=0.1, dpi=300)
         plt.close(fig)
     
     return slice_max - slice_min
@@ -170,9 +176,8 @@ def process_single_lesion(args: Tuple[str, Dict[str, str], str, int, int]) -> Op
 
         cropped_t1 = crop_image(t1_image, bounds)
         cropped_masks = {reader: crop_image(mask, bounds) for reader, mask in mask_images.items()}
-
         num_slices = save_slices_as_jpeg(cropped_t1, cropped_masks, out_dir, lesion_id, slice_range)
-        
+
         return lesion_id, num_slices
     except Exception as e:
         logger.error(f"Error processing lesion {lesion_id}: {e}")

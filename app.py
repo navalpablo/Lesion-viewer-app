@@ -11,7 +11,7 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 
 OUT_DIR = config.get('PATHS', 'OUT_DIR')
-ANNOTATIONS_FILE = os.path.join(OUT_DIR, 'annotations.tsv')
+ANNOTATIONS_FILE = config.get('PATHS', 'ANNOTATIONS_FILE')  # New line to get annotations file path from config
 
 app.config['HTML_GENERATION'] = dict(config['HTML_GENERATION'])
 
