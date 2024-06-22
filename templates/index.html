@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Subject List{% endblock %}
+
+{% block content %}
+    <h1>Subject List</h1>
+    <ul class="list-group">
+        {% for subject in subjects %}
+            <li class="list-group-item">
+                <a href="{{ url_for('view_subject', subject_id=subject) }}">{{ subject }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

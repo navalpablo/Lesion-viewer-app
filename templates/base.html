@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Lesion Viewer{% endblock %}</title>
+    <link rel="stylesheet" href="{{ config['HTML_GENERATION']['BOOTSTRAP_CSS_URL'] }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/">Lesion Viewer</a>
+    </nav>
+
+    <div class="container mt-4">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="{{ config['HTML_GENERATION']['JQUERY_URL'] }}"></script>
+    <script src="{{ config['HTML_GENERATION']['POPPER_URL'] }}"></script>
+    <script src="{{ config['HTML_GENERATION']['BOOTSTRAP_JS_URL'] }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
