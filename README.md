@@ -74,26 +74,6 @@ The pipeline expects a specific directory structure for the input data:
 └── ...
 ```
 
-### Output Data Structure
-After processing, the output directory will contain:
-
-```output/
-├── Reader_1/
-│   ├── sub-001_Lesion_01.nii.gz
-│   ├── sub-001_Lesion_02.nii.gz
-│   └── ...
-├── Reader_2/
-│   ├── sub-001_Lesion_01.nii.gz
-│   ├── sub-001_Lesion_02.nii.gz
-│   └── ...
-├── slices/
-│   ├── sub-001_001_001.jpg
-│   ├── sub-001_001_002.jpg
-│   └── ...
-├── lesion_comparison_results.tsv
-└── annotations.tsv
-```
-
 ## Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
 
