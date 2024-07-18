@@ -117,7 +117,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     subject_dirs = [os.path.join(args.base_path, d) for d in os.listdir(args.base_path)
-                    if os.path.isdir(os.path.join(args.base_path, d)) and d.startswith('sub-')]
+                    if os.path.isdir(os.path.join(args.base_path, d))]
 
     mask_tasks = []
     for subject_dir in subject_dirs:
