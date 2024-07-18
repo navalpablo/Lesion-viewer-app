@@ -71,7 +71,8 @@ The pipeline expects a specific directory structure for the input data:
 │   ├── Reader_1_mask.nii.gz
 │   ├── Reader_2_mask.nii.gz
 │   └── Underlay.nii.gz
-└── ...```
+└── ...
+```
 
 ###Output Data Structure
 After processing, the output directory will contain:
@@ -90,7 +91,8 @@ After processing, the output directory will contain:
 │   ├── sub-001_001_002.jpg
 │   └── ...
 ├── lesion_comparison_results.tsv
-└── annotations.tsv```
+└── annotations.tsv
+```
 
 ##Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
