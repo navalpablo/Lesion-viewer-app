@@ -81,9 +81,9 @@ def process_subject(subject_data):
         lesion_id = f'{subject_data.iloc[0]["Subject Folder"]}_{str(lesion_counter).zfill(3)}'
         if matches:
             for match in matches:
-                results.append([lesion_id, reader1_path, match, 'MULTIPLE_MATCHES' if len(matches) > 1 else '', underlay_path])
+                results.append([lesion_id, underlay_path, reader1_path, match])
         else:
-            results.append([lesion_id, reader1_path, '', '', underlay_path])
+            results.append([lesion_id, underlay_path, reader1_path, ''])
         
         lesion_counter += 1
 
@@ -91,7 +91,7 @@ def process_subject(subject_data):
         for idx, reader2_path in enumerate(reader2_paths):
             if idx not in used_reader2_indices:
                 lesion_id = f'{subject_data.iloc[0]["Subject Folder"]}_{str(lesion_counter).zfill(3)}'
-                results.append([lesion_id, '', reader2_path, '', underlay_path])
+                results.append([lesion_id, underlay_path, '', reader2_path])
                 lesion_counter += 1
 
     return results, reader1, reader2
@@ -120,7 +120,10 @@ def match_lesions(base_dir, output_path):
         raise ValueError(f"Expected 2 reader types across all subjects, found {len(reader_types)}: {reader_types}")
 
     reader1, reader2 = sorted(reader_types)
-    output_df = pd.DataFrame(all_results, columns=['Lesion ID', f'{reader1} Lesion Path', f'{reader2} Lesion Path', 'MULTIPLE_MATCHES', 'Underlay'])
+    
+    # Create DataFrame with the expected column order
+    output_df = pd.DataFrame(all_results, columns=['Lesion ID', 'Underlay', 'Reader_1', 'Reader_2'])
+    
     output_df.to_csv(output_path, sep='\t', index=False)
 
 if __name__ == '__main__':

@@ -3,16 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Lesion Viewer{% endblock %}</title>
+    <title>{% block title %}{% endblock %}</title>
     <link rel="stylesheet" href="{{ config['HTML_GENERATION']['BOOTSTRAP_CSS_URL'] }}">
-    {% block extra_css %}{% endblock %}
+    <style>
+        .lesion-image {
+            width: 80vw;
+            max-width: 100%;
+            height: auto;
+            object-fit: contain;
+        }
+        .lesion-container {
+            width: 80vw;
+            max-width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <a class="navbar-brand" href="/">Lesion Viewer</a>
     </nav>
 
-    <div class="container mt-4">
+    <div class="container-fluid mt-4">
         {% block content %}{% endblock %}
     </div>
 

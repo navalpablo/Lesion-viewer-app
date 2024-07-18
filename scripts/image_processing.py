@@ -15,10 +15,6 @@ import pandas as pd
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Load configuration
-config = configparser.ConfigParser()
-config.read('config.ini')
-
 # Type aliases
 NiftiImage = nib.Nifti1Image
 NumpyArray = np.ndarray
@@ -190,7 +186,7 @@ def process_lesions(base_dir: str, out_dir: str, tsv_path: str) -> List[Tuple[st
     lesion_matches = read_lesion_matches(tsv_path)
     
     in_plane_margin = int(config.get('IMAGE_PROCESSING', 'IN_PLANE_MARGIN'))
-    slice_margin = int(config.get('IMAGE_PROCESSING', 'SLICE_MARGIN'))
+    slice_margin = int(config.get('IMAGE_PROCESSING', 'slice_margin'))
 
     lesion_args = [(lesion_id, match, out_dir, in_plane_margin, slice_margin) for lesion_id, match in lesion_matches.items()]    
         
@@ -206,15 +202,16 @@ def main():
     parser.add_argument("--config", help="Path to configuration file", default="config.ini")
     args = parser.parse_args()
 
+    global config  # Make config global so it can be accessed by other functions
     config = configparser.ConfigParser()
     config.read(args.config)
 
-    base_dir = config.get('PATHS', 'BASE_DIR')
-    out_dir = config.get('PATHS', 'OUT_DIR')
-    tsv_file = config.get('PATHS', 'TSV_FILE')
+    base_dir = config.get('PATHS', 'base_dir')
+    out_dir = config.get('PATHS', 'out_dir')
+    tsv_file = config.get('PATHS', 'tsv_file')
 
     if not base_dir or not out_dir or not tsv_file:
-        parser.error("BASE_DIR, OUT_DIR, and TSV_FILE must be provided in the config file.")
+        parser.error("base_dir, out_dir, and tsv_file must be provided in the config file.")
 
     processed_lesions = process_lesions(base_dir, out_dir, tsv_file)
     
