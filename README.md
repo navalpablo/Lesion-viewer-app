@@ -74,7 +74,7 @@ The pipeline expects a specific directory structure for the input data:
 └── ...
 ```
 
-###Output Data Structure
+### Output Data Structure
 After processing, the output directory will contain:
 
 ```output/
@@ -94,11 +94,11 @@ After processing, the output directory will contain:
 └── annotations.tsv
 ```
 
-##Contributing
+## Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-##License
+## License
 This project is licensed under the MIT License - see the LICENSE file for details. However, it uses multiple other tools and inherits their licensing.
 
-##Contact
+## Contact
 If you have any questions or feedback, please open an issue on this repository.
