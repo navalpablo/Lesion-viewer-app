@@ -3,7 +3,12 @@ Lesion Viewer is a tool designed to assist in reviewing segmentations by differe
 
 ## Features
 
-- View and compare segmentations from multiple readers
+- GUI for easy preprocessing and viewing setup
+- Isolate individual lesions from input masks
+- Match lesions between different readers
+- Process and prepare images for web viewing
+- Interactive web-based viewer for lesion annotation
+- Compare segmentations from multiple readers
 - Navigate through slices of 3D medical images
 - Annotate lesions as Reader_1, Reader_2, No_rim, or Review
 - Save annotations for further analysis
@@ -21,51 +26,77 @@ cd lesion-viewer```
 ```conda activate lesion-viewer```
 
 
-## Configuration
-
-1. Copy the config.ini.example to config.ini:
-```cp config.ini.example config.ini```
-
-2. Edit config.ini to set your specific paths and preferences.
-
 ## Usage
+### GUI Interface
 
-### Image processing
+1. Run the GUI application:
+```python lesion_viewer_gui.py```
 
-Before using the viewer, you need to process the MRI images and segmentations:
+2. Use the GUI to:
+-  Select input and output directories
+-  Choose preprocessing steps
+-  Execute preprocessing
+-  Launch the web viewer
 
-1. Prepare a TSV file with columns for Lesion ID, Underlay (T1 image path), Reader_1 (segmentation path), and Reader_2 (segmentation path).
 
-2. Run the image processing script:
 
-```python image_processing.py --config config.ini```
+### Command Line Interface
+Alternatively, you can use the command-line interface:
 
-This script will:
-- Read the TSV file specified in your config.ini
-- Process each lesion, creating JPEG slices for viewing
-- Save the processed images in the output directory specified in your config.ini
+Run the main script:
+```python Lesion_viewer.py --base_path /path/to/input --output /path/to/output --steps isolate match process web```
 
-### Viewing and annotating
+#### Available steps:
+- isolate: Isolate individual lesions from input masks
+- match: Match lesions between different readers
+- process: Process images for web viewing
+- web: Start the web application for lesion viewing and annotation
 
-1. Run the Flask application:
-```python app.py```
+### Web Viewer
 
-2. Open a web browser and navigate to http://localhost:5000
+1. After preprocessing, the web viewer will automatically launch in your default browser.
+2. Select a subject from the list to start reviewing lesions.
+3. Use the slider to navigate through slices and the radio buttons to annotate each lesion.
+4. Click "Save All Annotations" to save your work.
 
-3. Select a subject from the list to start reviewing lesions
+### Input Data Structure
+The pipeline expects a specific directory structure for the input data:
 
-4. Use the slider to navigate through slices and the radio buttons to annotate each lesion
+```base_path/
+├── sub-001/
+│   ├── Reader_1_mask.nii.gz
+│   ├── Reader_2_mask.nii.gz
+│   └── Underlay.nii.gz
+├── sub-002/
+│   ├── Reader_1_mask.nii.gz
+│   ├── Reader_2_mask.nii.gz
+│   └── Underlay.nii.gz
+└── ...```
 
-5. Click "Save All Annotations" to save your work
+###Output Data Structure
+After processing, the output directory will contain:
 
-## Contributing
+```output/
+├── Reader_1/
+│   ├── sub-001_Lesion_01.nii.gz
+│   ├── sub-001_Lesion_02.nii.gz
+│   └── ...
+├── Reader_2/
+│   ├── sub-001_Lesion_01.nii.gz
+│   ├── sub-001_Lesion_02.nii.gz
+│   └── ...
+├── slices/
+│   ├── sub-001_001_001.jpg
+│   ├── sub-001_001_002.jpg
+│   └── ...
+├── lesion_comparison_results.tsv
+└── annotations.tsv```
 
+##Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## License
+##License
+This project is licensed under the MIT License - see the LICENSE file for details. However, it uses multiple other tools and inherits their licensing.
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-
-## Contact
+##Contact
 If you have any questions or feedback, please open an issue on this repository.
