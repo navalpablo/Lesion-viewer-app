@@ -1,6 +1,8 @@
 import sys
 import os
 import subprocess
+import configparser
+import time
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QCheckBox, QTextEdit, QFileDialog, QMessageBox
 
 class LesionViewerGUI(QWidget):
@@ -46,7 +48,7 @@ class LesionViewerGUI(QWidget):
         layout.addWidget(preprocess_button)
 
         # Open viewer button
-        open_viewer_button = QPushButton('Open Viewer (after preprocessing')
+        open_viewer_button = QPushButton('Open Viewer (after preprocessing)')
         open_viewer_button.clicked.connect(self.open_viewer)
         layout.addWidget(open_viewer_button)
 
@@ -106,41 +108,63 @@ class LesionViewerGUI(QWidget):
             QMessageBox.warning(self, "Error", "Configuration file not found. Please run preprocessing first.")
             return
 
-        command = [sys.executable, os.path.join('scripts', 'app.py')]
+        # Change the current working directory to where the script is located
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+        # Use the same command structure as in Lesion_viewer.py
+        command = [sys.executable, 'Lesion_viewer.py', '--base_path', self.input_edit.text(), '--output', out_dir, '--steps', 'web']
 
         try:
-            subprocess.Popen(command)
-            QMessageBox.information(self, "Success", "Web viewer launched. Please check your default web browser.")
-        except subprocess.CalledProcessError as e:
+            # Use subprocess.Popen to run the Lesion_viewer.py script
+            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            
+            # Wait a short time to check if the process started successfully
+            time.sleep(2)
+            
+            if process.poll() is None:
+                # Process is still running, assume it started successfully
+                QMessageBox.information(self, "Success", "Web viewer launched. Please check your default web browser.")
+            else:
+                # Process exited quickly, probably due to an error
+                stdout, stderr = process.communicate()
+                error_message = f"Error launching viewer:\n{stderr.decode('utf-8')}"
+                QMessageBox.critical(self, "Error", error_message)
+        except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred while launching the viewer: {str(e)}")
 
     def create_config(self, base_dir, out_dir, config_path):
-        config_content = f"""[PATHS]
-BASE_DIR = {base_dir}
-OUT_DIR = {out_dir}
-TSV_FILE = {os.path.join(out_dir, 'lesion_comparison_results.tsv')}
-ANNOTATIONS_FILE = {os.path.join(out_dir, 'annotations.tsv')}
-
-[IMAGE_PROCESSING]
-SLICE_FIGURE_SIZE = 15,5
-T1_COLORMAP = gray
-MARC_MASK_COLORMAP = Reds
-ALBERT_MASK_COLORMAP = Blues
-MASK_ALPHA = 0.5
-IN_PLANE_MARGIN = 50
-SLICE_MARGIN = 5
-
-[HTML_GENERATION]
-BOOTSTRAP_CSS_URL = https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css
-JQUERY_URL = https://code.jquery.com/jquery-3.3.1.slim.min.js
-POPPER_URL = https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js
-BOOTSTRAP_JS_URL = https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js
-
-[MULTIPROCESSING]
-NUM_PROCESSES = 0
-"""
-        with open(config_path, 'w') as f:
-            f.write(config_content)
+        config = configparser.ConfigParser()
+        
+        config['PATHS'] = {
+            'BASE_DIR': base_dir,
+            'OUT_DIR': out_dir,
+            'TSV_FILE': os.path.join(out_dir, 'lesion_comparison_results.tsv'),
+            'ANNOTATIONS_FILE': os.path.join(out_dir, 'annotations.tsv')
+        }
+        
+        config['IMAGE_PROCESSING'] = {
+            'SLICE_FIGURE_SIZE': '15,5',
+            'T1_COLORMAP': 'gray',
+            'MARC_MASK_COLORMAP': 'Reds',
+            'ALBERT_MASK_COLORMAP': 'Blues',
+            'MASK_ALPHA': '0.5',
+            'IN_PLANE_MARGIN': '50',
+            'SLICE_MARGIN': '5'
+        }
+        
+        config['HTML_GENERATION'] = {
+            'BOOTSTRAP_CSS_URL': 'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css',
+            'JQUERY_URL': 'https://code.jquery.com/jquery-3.3.1.slim.min.js',
+            'POPPER_URL': 'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js',
+            'BOOTSTRAP_JS_URL': 'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js'
+        }
+        
+        config['MULTIPROCESSING'] = {
+            'NUM_PROCESSES': '0'
+        }
+        
+        with open(config_path, 'w') as configfile:
+            config.write(configfile)
 
     def show_help(self):
         help_text = """
