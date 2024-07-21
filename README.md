@@ -1,16 +1,16 @@
 # Lesion Viewer
-Lesion Viewer is a tool designed to assist in reviewing segmentations by different readers. It's particularly useful for cases involving numerous small segmentations, such as multiple sclerosis MRI lesions, where there might be many little white-matter lesions.
+Lesion Viewer is a tool designed to assist in reviewing segmentations by one or different readers. It's particularly useful for cases involving numerous small segmentations, such as multiple sclerosis MRI lesions, where there might be many little white-matter lesions.
 
 ## Features
 
 - GUI for easy preprocessing and viewing setup
 - Isolate individual lesions from input masks
 - Match lesions between different readers
-- Process and prepare images for web viewing
+- Process and prepare images for 3D interactive slice by slice web viewing centered on lesion
 - Interactive web-based viewer for lesion annotation
 - Compare segmentations from multiple readers
 - Navigate through slices of 3D medical images
-- Annotate lesions as Reader_1, Reader_2, No_rim, or Review
+- Annotate lesions in the go using the web viewer 
 - Save annotations for further analysis
 
 ## Installation
