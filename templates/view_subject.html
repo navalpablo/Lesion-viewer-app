@@ -5,56 +5,68 @@
     <div class="col-12 col-md-10 col-lg-8">
         <h1 class="text-center mb-4">Subject Viewer: {{ subject.subject_id }}</h1>
 
-        <form id="annotationForm">
-        {% for lesion_id, slices in subject.lesions.items() %}
+        {% for lesion_id, lesion_data in subject.lesions.items() %}
         <div class="lesion-container mb-4" 
-             data-lesion-id="{{ lesion_id }}"
-             data-min-slice="{{ slices[0].split('_')[-1].split('.')[0]|int }}"
-             data-max-slice="{{ slices[-1].split('_')[-1].split('.')[0]|int }}"
-             data-center-slice="{{ slices[slices|length // 2].split('_')[-1].split('.')[0]|int }}">
+             lesion-id="{{ lesion_id }}" 
+             min-slice="{{ lesion_data.slices[0].split('_')[-1].split('.')[0]|int }}" 
+             max-slice="{{ lesion_data.slices[-1].split('_')[-1].split('.')[0]|int }}" 
+             center-slice="{{ lesion_data.slices[lesion_data.slices|length // 2].split('_')[-1].split('.')[0]|int }}">
             <h3 class="text-center">Lesion: {{ lesion_id }}</h3>
+            
+
             <div class="text-center mt-3">
-                <img src="{{ url_for('serve_slice', filename=slices[slices|length // 2]) }}"
-                     id="sliceImage_{{ lesion_id }}"
-                     class="img-fluid lesion-image"
-                     data-lesion-id="{{ lesion_id }}"
-                     data-subject-id="{{ subject.subject_id }}">
+                <img src="{{ url_for('serve_slice', filename=lesion_data.slices[lesion_data.slices|length // 2]) }}" 
+                     id="sliceImage_{{ lesion_id }}" 
+                     class="img-fluid lesion-image" 
+                     lesion-id="{{ lesion_id }}" 
+                     subject-id="{{ subject.subject_id }}">
             </div>
-            <input type="range" class="slice-range form-control-range mt-3" 
-                   min="{{ slices[0].split('_')[-1].split('.')[0]|int }}"
-                   max="{{ slices[-1].split('_')[-1].split('.')[0]|int }}"
-                   value="{{ slices[slices|length // 2].split('_')[-1].split('.')[0]|int }}">
+
             <div class="text-center">
-                <span class="slice-number">Slice: <span class="current-slice">{{ slices[slices|length // 2].split('_')[-1].split('.')[0] }}</span></span>
+                <span class="slice-number">Slice: <span class="current-slice">{{ lesion_data.slices[lesion_data.slices|length // 2].split('_')[-1].split('.')[0] }}</span></span>
             </div>
+
+            <div class="mt-3 text-center">
+                <input type="range" class="slice-range" 
+                       min="{{ lesion_data.slices[0].split('_')[-1].split('.')[0]|int }}" 
+                       max="{{ lesion_data.slices[-1].split('_')[-1].split('.')[0]|int }}" 
+                       value="{{ lesion_data.slices[lesion_data.slices|length // 2].split('_')[-1].split('.')[0]|int }}">
+            </div>
+            {% if lesion_data.multiple_matches %}
+			
+			<p class="text-center multiple-matches-note" style="background-color: #ffe6e6; border: 2px solid red; padding: 10px; margin: 10px 0;">
+				<strong style="color: red; font-size: 1.2em;">NOTICE: {{ lesion_data.multiple_matches }}</strong>
+			</p>
+            {% endif %}
             <div class="mt-3 text-center">
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="annotation_{{ lesion_id }}" value="Reader_1">
-                    <label class="form-check-label">Reader_1</label>
+                    <input class="form-check-input" type="radio" name="annotation_{{ lesion_id }}" id="reader1_{{ lesion_id }}" value="Reader_1">
+                    <label class="form-check-label" for="reader1_{{ lesion_id }}">Reader_1</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="annotation_{{ lesion_id }}" value="Reader_2">
-                    <label class="form-check-label">Reader_2</label>
+                    <input class="form-check-input" type="radio" name="annotation_{{ lesion_id }}" id="reader2_{{ lesion_id }}" value="Reader_2">
+                    <label class="form-check-label" for="reader2_{{ lesion_id }}">Reader_2</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="annotation_{{ lesion_id }}" value="No_rim">
-                    <label class="form-check-label">No_rim</label>
+                    <input class="form-check-input" type="radio" name="annotation_{{ lesion_id }}" id="none_{{ lesion_id }}" value="None">
+                    <label class="form-check-label" for="none_{{ lesion_id }}">None</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="annotation_{{ lesion_id }}" value="Review">
-                    <label class="form-check-label">Review</label>
+                    <input class="form-check-input" type="radio" name="annotation_{{ lesion_id }}" id="review_{{ lesion_id }}" value="Review">
+                    <label class="form-check-label" for="review_{{ lesion_id }}">Review</label>
                 </div>
             </div>
         </div>
         {% endfor %}
 
         <div class="text-center">
-            <button type="submit" class="btn btn-primary mt-3 mb-5">Save All Annotations</button>
+            <button type="submit" class="btn btn-primary">Save All Annotations</button>
         </div>
-        </form>
     </div>
 </div>
 {% endblock %}
+
+
 
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/viewer.js') }}"></script>

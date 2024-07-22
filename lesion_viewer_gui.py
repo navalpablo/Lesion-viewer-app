@@ -4,11 +4,16 @@ import subprocess
 import configparser
 import time
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QCheckBox, QTextEdit, QFileDialog, QMessageBox
+from PyQt5.QtCore import QSettings, QCoreApplication
 
 class LesionViewerGUI(QWidget):
     def __init__(self):
         super().__init__()
+        QCoreApplication.setOrganizationName("YourOrganization")
+        QCoreApplication.setApplicationName("LesionViewer")
+        self.settings = QSettings()
         self.initUI()
+        self.loadSettings()
 
     def initUI(self):
         layout = QVBoxLayout()
@@ -61,6 +66,24 @@ class LesionViewerGUI(QWidget):
         self.setWindowTitle('Lesion Viewer')
         self.show()
 
+    def loadSettings(self):
+        self.input_edit.setText(self.settings.value("input_directory", ""))
+        self.output_edit.setText(self.settings.value("output_directory", ""))
+        self.isolate_check.setChecked(self.settings.value("isolate_lesions", False, type=bool))
+        self.match_check.setChecked(self.settings.value("match_lesions", False, type=bool))
+        self.process_check.setChecked(self.settings.value("process_images", False, type=bool))
+
+    def saveSettings(self):
+        self.settings.setValue("input_directory", self.input_edit.text())
+        self.settings.setValue("output_directory", self.output_edit.text())
+        self.settings.setValue("isolate_lesions", self.isolate_check.isChecked())
+        self.settings.setValue("match_lesions", self.match_check.isChecked())
+        self.settings.setValue("process_images", self.process_check.isChecked())
+
+    def closeEvent(self, event):
+        self.saveSettings()
+        super().closeEvent(event)
+
     def browse_directory(self, line_edit):
         directory = QFileDialog.getExistingDirectory(self, "Select Directory")
         if directory:
@@ -75,7 +98,11 @@ class LesionViewerGUI(QWidget):
             return
 
         config_path = os.path.join(out_dir, 'temp_config.ini')
-        self.create_config(base_dir, out_dir, config_path)
+        try:
+            self.create_config(base_dir, out_dir, config_path)
+        except OSError as e:
+            QMessageBox.critical(self, "Error", f"Failed to create config file: {str(e)}")
+            return
 
         steps = []
         if self.isolate_check.isChecked():
@@ -162,6 +189,9 @@ class LesionViewerGUI(QWidget):
         config['MULTIPROCESSING'] = {
             'NUM_PROCESSES': '0'
         }
+        
+        # Ensure the directory exists before writing the file
+        os.makedirs(os.path.dirname(config_path), exist_ok=True)
         
         with open(config_path, 'w') as configfile:
             config.write(configfile)

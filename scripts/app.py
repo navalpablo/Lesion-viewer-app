@@ -121,6 +121,10 @@ def get_subject_data(subject_id):
     
     pattern = re.compile(rf'^(sub-)?{re.escape(subject_id)}_(\d+)_(\d+)\.jpg$')
     
+    # Load the TSV file
+    tsv_file = os.path.join(OUT_DIR, 'lesion_comparison_results.tsv')
+    df = pd.read_csv(tsv_file, sep='\t')
+    
     for filename in os.listdir(slices_dir):
         logger.debug(f"Checking file: {filename}")
         match = pattern.match(filename)
@@ -129,8 +133,17 @@ def get_subject_data(subject_id):
             lesion_id = f"{subject_id}_{lesion_num}"
             
             if lesion_id not in lesions:
-                lesions[lesion_id] = []
-            lesions[lesion_id].append(filename)
+                lesions[lesion_id] = {
+                    'slices': [],
+                    'multiple_matches': ''
+                }
+            lesions[lesion_id]['slices'].append(filename)
+            
+            # Get multiple matches information
+            multiple_matches = df[df['Lesion ID'] == lesion_id]['Multiple Matches'].values
+            if len(multiple_matches) > 0 and pd.notna(multiple_matches[0]):
+                lesions[lesion_id]['multiple_matches'] = multiple_matches[0]
+            
             logger.debug(f"Added {filename} to lesion {lesion_id}")
 
     logger.debug(f"Found lesions: {lesions}")
@@ -139,7 +152,7 @@ def get_subject_data(subject_id):
         'subject_id': subject_id,
         'lesions': lesions
     }
-
+    
 def open_browser():
     webbrowser.open_new('http://127.0.0.1:5000/')
 
