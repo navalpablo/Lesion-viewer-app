@@ -1,0 +1,111 @@
+body {
+    background-color: #f8f9fa;
+    font-family: 'Arial', sans-serif;
+}
+
+.container {
+    max-width: 1200px;
+}
+
+h1 {
+    color: #007bff;
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    background-color: #007bff;
+    color: white;
+    border-top-left-radius: 15px !important;
+    border-top-right-radius: 15px !important;
+}
+
+.card-title {
+    font-weight: bold;
+}
+
+.lesion-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.form-range::-webkit-slider-thumb {
+    background: #007bff;
+}
+
+.form-range::-moz-range-thumb {
+    background: #007bff;
+}
+
+.form-range::-ms-thumb {
+    background: #007bff;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+.alert-danger {
+    background-color: #ffe6e6;
+    color: #dc3545;
+}
+
+.alert-danger .bi-exclamation-triangle-fill {
+    color: #dc3545;
+}
+
+.subject-link {
+    text-decoration: none;
+    color: #212529;
+    display: block;
+    padding: 10px 15px;
+    transition: all 0.3s ease;
+}
+
+.subject-link:hover {
+    background-color: #f8f9fa;
+    color: #007bff;
+}
+
+.badge {
+    transition: all 0.3s ease;
+}
+
+.subject-link:hover .badge {
+    background-color: #0056b3 !important;
+}
+
+/* Updated styles for the Save All Annotations button */
+.save-annotations-btn {
+    font-size: 1.25rem;
+    padding: 15px 30px;
+    margin-top: 20px;
+    color: white !important;  /* Ensure text color is white */
+    font-weight: bold;  /* Make text bold */
+}
+
+.save-annotations-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    background-color: #0056b3;  /* Darker blue on hover */
+    color: white !important;  /* Ensure text stays white on hover */
+}

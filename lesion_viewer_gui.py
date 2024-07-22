@@ -38,6 +38,22 @@ class LesionViewerGUI(QWidget):
         output_layout.addWidget(output_button)
         layout.addLayout(output_layout)
 
+        # In-plane margin
+        in_plane_layout = QHBoxLayout()
+        in_plane_layout.addWidget(QLabel('In-plane Margin:'))
+        self.in_plane_edit = QLineEdit()
+        self.in_plane_edit.setPlaceholderText("Default: 50")
+        in_plane_layout.addWidget(self.in_plane_edit)
+        layout.addLayout(in_plane_layout)
+
+        # Slice margin
+        slice_layout = QHBoxLayout()
+        slice_layout.addWidget(QLabel('Slice Margin:'))
+        self.slice_edit = QLineEdit()
+        self.slice_edit.setPlaceholderText("Default: 5")
+        slice_layout.addWidget(self.slice_edit)
+        layout.addLayout(slice_layout)
+
         # Preprocessing options
         layout.addWidget(QLabel('Choose preprocessing steps:'))
         self.isolate_check = QCheckBox('Isolate Lesions')
@@ -69,6 +85,8 @@ class LesionViewerGUI(QWidget):
     def loadSettings(self):
         self.input_edit.setText(self.settings.value("input_directory", ""))
         self.output_edit.setText(self.settings.value("output_directory", ""))
+        self.in_plane_edit.setText(self.settings.value("in_plane_margin", ""))
+        self.slice_edit.setText(self.settings.value("slice_margin", ""))
         self.isolate_check.setChecked(self.settings.value("isolate_lesions", False, type=bool))
         self.match_check.setChecked(self.settings.value("match_lesions", False, type=bool))
         self.process_check.setChecked(self.settings.value("process_images", False, type=bool))
@@ -76,6 +94,8 @@ class LesionViewerGUI(QWidget):
     def saveSettings(self):
         self.settings.setValue("input_directory", self.input_edit.text())
         self.settings.setValue("output_directory", self.output_edit.text())
+        self.settings.setValue("in_plane_margin", self.in_plane_edit.text())
+        self.settings.setValue("slice_margin", self.slice_edit.text())
         self.settings.setValue("isolate_lesions", self.isolate_check.isChecked())
         self.settings.setValue("match_lesions", self.match_check.isChecked())
         self.settings.setValue("process_images", self.process_check.isChecked())
@@ -135,24 +155,18 @@ class LesionViewerGUI(QWidget):
             QMessageBox.warning(self, "Error", "Configuration file not found. Please run preprocessing first.")
             return
 
-        # Change the current working directory to where the script is located
         os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-        # Use the same command structure as in Lesion_viewer.py
         command = [sys.executable, 'Lesion_viewer.py', '--base_path', self.input_edit.text(), '--output', out_dir, '--steps', 'web']
 
         try:
-            # Use subprocess.Popen to run the Lesion_viewer.py script
             process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             
-            # Wait a short time to check if the process started successfully
             time.sleep(2)
             
             if process.poll() is None:
-                # Process is still running, assume it started successfully
                 QMessageBox.information(self, "Success", "Web viewer launched. Please check your default web browser.")
             else:
-                # Process exited quickly, probably due to an error
                 stdout, stderr = process.communicate()
                 error_message = f"Error launching viewer:\n{stderr.decode('utf-8')}"
                 QMessageBox.critical(self, "Error", error_message)
@@ -175,8 +189,8 @@ class LesionViewerGUI(QWidget):
             'MARC_MASK_COLORMAP': 'Reds',
             'ALBERT_MASK_COLORMAP': 'Blues',
             'MASK_ALPHA': '0.5',
-            'IN_PLANE_MARGIN': '50',
-            'SLICE_MARGIN': '5'
+            'IN_PLANE_MARGIN': self.in_plane_edit.text() or '50',
+            'SLICE_MARGIN': self.slice_edit.text() or '5'
         }
         
         config['HTML_GENERATION'] = {
@@ -190,7 +204,6 @@ class LesionViewerGUI(QWidget):
             'NUM_PROCESSES': '0'
         }
         
-        # Ensure the directory exists before writing the file
         os.makedirs(os.path.dirname(config_path), exist_ok=True)
         
         with open(config_path, 'w') as configfile:
@@ -204,6 +217,8 @@ This application processes and views brain lesion images.
 
 1. Subject Directory: Select the directory containing subject folders with lesion data.
 2. Output Directory: Choose where processed images and results will be saved.
+3. In-plane Margin: Set the in-plane margin for image processing (default: 50).
+4. Slice Margin: Set the slice margin for image processing (default: 5).
 
 Preprocessing Options:
 - Isolate Lesions: Separates individual lesions from input masks.

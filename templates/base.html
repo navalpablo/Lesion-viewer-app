@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %}</title>
     <link rel="stylesheet" href="{{ config['HTML_GENERATION']['BOOTSTRAP_CSS_URL'] }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
     <style>
         .lesion-image {
             width: 80vw;
@@ -18,6 +19,14 @@
             margin-left: auto;
             margin-right: auto;
         }
+		.alert-danger {
+			background-color: #ffe6e6;
+			color: #dc3545;
+		}
+
+		.alert-danger .bi-exclamation-triangle-fill {
+			color: #dc3545;
+		}		
     </style>
 </head>
 <body>

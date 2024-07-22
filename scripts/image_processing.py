@@ -56,10 +56,18 @@ def load_nifti_image(filepath: str) -> Optional[NumpyArray]:
         logger.error(f"Error loading NIfTI image from {filepath}: {e}")
         return None
 
-def get_center_and_margin(mask: NumpyArray, in_plane_margin: int = 50, slice_margin: int = 5) -> Tuple[List[List[int]], Tuple[int, int]]:
-    coords = np.array(np.nonzero(mask))
-    center = np.mean(coords, axis=1).astype(int)
-    shape = mask.shape
+def get_center_and_margin(masks: Dict[str, NumpyArray], in_plane_margin: int = 50, slice_margin: int = 5) -> Tuple[List[List[int]], Tuple[int, int]]:
+    all_coords = []
+    for mask in masks.values():
+        coords = np.array(np.nonzero(mask))
+        all_coords.append(coords)
+    
+    if not all_coords:
+        raise ValueError("No valid mask data found")
+    
+    all_coords = np.concatenate(all_coords, axis=1)
+    center = np.mean(all_coords, axis=1).astype(int)
+    shape = next(iter(masks.values())).shape
     
     # Calculate in-plane bounds
     in_plane_bounds = [
@@ -68,15 +76,13 @@ def get_center_and_margin(mask: NumpyArray, in_plane_margin: int = 50, slice_mar
     ]
     
     # Calculate through-plane (slice) bounds
-    slice_min = max(0, coords[2].min() - slice_margin)
-    slice_max = min(shape[2], coords[2].max() + slice_margin + 1)
+    slice_min = max(0, all_coords[2].min() - slice_margin)
+    slice_max = min(shape[2], all_coords[2].max() + slice_margin + 1)
     
     # Combine bounds
     bounds = in_plane_bounds + [[slice_min, slice_max]]
     
     return bounds, (slice_min, slice_max)
-
-
 
 def crop_image(image: NumpyArray, bounds: List[List[int]]) -> NumpyArray:
     return image[bounds[0][0]:bounds[0][1], bounds[1][0]:bounds[1][1], bounds[2][0]:bounds[2][1]]
@@ -131,7 +137,6 @@ def save_slices_as_jpeg(t1_image: NumpyArray, mask_images: Dict[str, NumpyArray]
         plt.close(fig)
     
     return slice_max - slice_min
-    
 
 def process_single_lesion(args: Tuple[str, Dict[str, str], str, int, int]) -> Optional[Tuple[str, int]]:
     lesion_id, match, out_dir, in_plane_margin, slice_margin = args
@@ -166,9 +171,7 @@ def process_single_lesion(args: Tuple[str, Dict[str, str], str, int, int]) -> Op
             logger.warning(f"No lesion mask found for lesion {lesion_id}")
             return None
 
-        # Use the first available mask for bounding
-        mask_for_bounds = next(iter(mask_images.values()))
-        bounds, slice_range = get_center_and_margin(mask_for_bounds, in_plane_margin, slice_margin)
+        bounds, slice_range = get_center_and_margin(mask_images, in_plane_margin, slice_margin)
 
         cropped_t1 = crop_image(t1_image, bounds)
         cropped_masks = {reader: crop_image(mask, bounds) for reader, mask in mask_images.items()}
@@ -178,7 +181,6 @@ def process_single_lesion(args: Tuple[str, Dict[str, str], str, int, int]) -> Op
     except Exception as e:
         logger.error(f"Error processing lesion {lesion_id}: {e}")
         return None
-        
 
 def process_lesions(base_dir: str, out_dir: str, tsv_path: str) -> List[Tuple[str, int]]:
     os.makedirs(out_dir, exist_ok=True)
@@ -195,8 +197,7 @@ def process_lesions(base_dir: str, out_dir: str, tsv_path: str) -> List[Tuple[st
         lesion_results = list(tqdm(pool.imap(process_single_lesion, lesion_args), total=len(lesion_args)))
     
     return [res for res in lesion_results if res is not None]
-    
-    
+
 def main():
     parser = argparse.ArgumentParser(description="Process brain lesion images.")
     parser.add_argument("--config", help="Path to configuration file", default="config.ini")

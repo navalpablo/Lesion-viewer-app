@@ -26,6 +26,22 @@ document.addEventListener('DOMContentLoaded', function() {
             image.src = newSrc;
             currentSliceSpan.textContent = sliceNumber;
         }
+
+        // Handle "Other" radio button and textbox
+        const otherRadio = container.querySelector('input[value="Other"]');
+        const otherTextbox = container.querySelector('input[type="text"]');
+        
+        if (otherRadio && otherTextbox) {
+            otherRadio.addEventListener('change', function() {
+                if (this.checked) {
+                    otherTextbox.focus();
+                }
+            });
+
+            otherTextbox.addEventListener('input', function() {
+                otherRadio.checked = true;
+            });
+        }
     });
 
     form.addEventListener('submit', function(e) {
@@ -37,7 +53,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const lesionId = container.dataset.lesionId;
             const selectedAnnotation = container.querySelector('input[name^="annotation_"]:checked');
             if (selectedAnnotation) {
-                annotations[lesionId] = selectedAnnotation.value;
+                if (selectedAnnotation.value === 'Other') {
+                    const otherText = container.querySelector('input[type="text"]').value;
+                    annotations[lesionId] = otherText || 'Other';
+                } else {
+                    annotations[lesionId] = selectedAnnotation.value;
+                }
             }
         });
 
