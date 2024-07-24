@@ -113,6 +113,8 @@ def get_subject_list():
             subjects.add(subject_id)
     return sorted(list(subjects))
 
+
+
 def get_subject_data(subject_id):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     slices_dir = os.path.abspath(os.path.join(current_dir, '..', OUT_DIR, 'slices'))
