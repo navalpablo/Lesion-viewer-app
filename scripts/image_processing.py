@@ -19,6 +19,18 @@ logger = logging.getLogger(__name__)
 NiftiImage = nib.Nifti1Image
 NumpyArray = np.ndarray
 
+def calculate_optimal_window(t1_image: NumpyArray, combined_mask: NumpyArray) -> Tuple[float, float]:
+    masked_intensities = t1_image[combined_mask > 0]
+    if len(masked_intensities) == 0:
+        return None, None  # Return default values if no voxels in mask
+    
+    # Calculate window center (median) and window width (1.5 * IQR)
+    window_center = np.median(masked_intensities)
+    p01, p99 = np.percentile(masked_intensities, [1, 99])
+    window_width = 2 * (p99 - p01)
+    
+    return window_center, window_width
+
 def read_lesion_matches(tsv_path: str) -> Dict[str, Dict[str, str]]:
     try:
         df = pd.read_csv(tsv_path, sep='\t')
@@ -93,43 +105,56 @@ def save_slices_as_jpeg(t1_image: NumpyArray, mask_images: Dict[str, NumpyArray]
     os.makedirs(slices_dir, exist_ok=True)
     
     readers = ['Reader_1', 'Reader_2']
-    num_readers = sum(1 for reader in readers if reader in mask_images)
     
-    cmap = plt.get_cmap('Set1')  # Colormap for different readers
+    cmap = plt.get_cmap('Set1')
     colors = {
-        'Reader_1': cmap(0)[:3],  # First color in the Set1 colormap
-        'Reader_2': cmap(1)[:3]   # Second color in the Set1 colormap
+        'Reader_1': cmap(0)[:3],
+        'Reader_2': cmap(1)[:3]
     }
+    
+    # Combine masks
+    combined_mask = np.zeros_like(t1_image)
+    for mask in mask_images.values():
+        combined_mask = np.logical_or(combined_mask, mask > 0)
+    
+    # Calculate optimal window
+    window_center, window_width = calculate_optimal_window(t1_image, combined_mask)
     
     slice_min, slice_max = slice_range
     for i in range(slice_min, slice_max):
-        fig, axs = plt.subplots(1, 3, figsize=(15, 5))
+        fig, axs = plt.subplots(2, 3, figsize=(15, 10))
         
-        # Add main title with lesion ID
-        fig.suptitle(f'Lesion ID: {lesion_id}', fontsize=16, y=1.05)
+        fig.suptitle(f'Lesion ID: {lesion_id}', fontsize=16, y=0.98)
         
-        # T1 image alone
-        axs[0].imshow(np.rot90(exposure.equalize_hist(t1_image[:, :, i - slice_min])), cmap='gray')
-        axs[0].axis('off')
-        axs[0].set_title(f'T1 Image (Slice {i})')
-
-        # Reader columns
-        for idx, reader in enumerate(readers):
-            if reader in mask_images:
-                # T1 with reader's mask
-                axs[idx+1].imshow(np.rot90(exposure.equalize_hist(t1_image[:, :, i - slice_min])), cmap='gray')
-                mask = mask_images[reader]
-                mask_rgba = np.zeros((*mask.shape[:2], 4))
-                mask_rgba[..., :3] = colors[reader]  # RGB channels
-                mask_rgba[..., 3] = np.where(mask[:, :, i - slice_min] > 0, 0.5, 0)  # Alpha channel
-                axs[idx+1].imshow(np.rot90(mask_rgba))
-                axs[idx+1].set_title(f'T1 + {reader} (Slice {i})')
+        for row, window in enumerate([('default', None, None), ('optimized', window_center, window_width)]):
+            window_type, center, width = window
+            
+            # Apply window settings
+            if center is not None and width is not None:
+                vmin, vmax = center - width/2, center + width/2
             else:
-                # Leave the subplot blank if reader data is absent
-                axs[idx+1].axis('off')
-                axs[idx+1].set_title(f'{reader} - No Data')
+                vmin, vmax = None, None
+            
+            # T1 image alone
+            axs[row, 0].imshow(np.rot90(t1_image[:, :, i - slice_min]), cmap='gray', vmin=vmin, vmax=vmax)
+            axs[row, 0].axis('off')
+            axs[row, 0].set_title(f'T1 Image ({window_type} window)')
 
-        # Adjust layout to make room for the main title
+            # Reader columns
+            for idx, reader in enumerate(readers):
+                if reader in mask_images:
+                    axs[row, idx+1].imshow(np.rot90(t1_image[:, :, i - slice_min]), cmap='gray', vmin=vmin, vmax=vmax)
+                    mask = mask_images[reader]
+                    mask_rgba = np.zeros((*mask.shape[:2], 4))
+                    mask_rgba[..., :3] = colors[reader]
+                    mask_rgba[..., 3] = np.where(mask[:, :, i - slice_min] > 0, 0.5, 0)
+                    axs[row, idx+1].imshow(np.rot90(mask_rgba))
+                    axs[row, idx+1].set_title(f'T1 + {reader} ({window_type} window)')
+                else:
+                    axs[row, idx+1].axis('off')
+                    axs[row, idx+1].set_title(f'{reader} - No Data')
+                axs[row, idx+1].axis('off')
+
         plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
         slice_path = os.path.join(slices_dir, f'{lesion_id}_{i:03d}.jpg')
@@ -137,7 +162,6 @@ def save_slices_as_jpeg(t1_image: NumpyArray, mask_images: Dict[str, NumpyArray]
         plt.close(fig)
     
     return slice_max - slice_min
-
 def process_single_lesion(args: Tuple[str, Dict[str, str], str, int, int]) -> Optional[Tuple[str, int]]:
     lesion_id, match, out_dir, in_plane_margin, slice_margin = args
     

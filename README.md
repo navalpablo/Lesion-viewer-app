@@ -1,4 +1,7 @@
 # Lesion Viewer
+
+![Lesion Viewer Logo](static/images/icon.png)
+
 Lesion Viewer is a tool designed to assist in reviewing segmentations by one or different readers. It's particularly useful for cases involving numerous small segmentations, such as multiple sclerosis MRI lesions, where there might be many little white-matter lesions.
 
 ## Features

@@ -5,11 +5,14 @@ import configparser
 import time
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QCheckBox, QTextEdit, QFileDialog, QMessageBox
 from PyQt5.QtCore import QSettings, QCoreApplication
+from PyQt5.QtGui import QIcon
+
 
 class LesionViewerGUI(QWidget):
     def __init__(self):
         super().__init__()
-        QCoreApplication.setOrganizationName("YourOrganization")
+        self.setWindowIcon(QIcon('static/images/icon.ico'))        
+        QCoreApplication.setOrganizationName("BV-RADS")
         QCoreApplication.setApplicationName("LesionViewer")
         self.settings = QSettings()
         self.initUI()

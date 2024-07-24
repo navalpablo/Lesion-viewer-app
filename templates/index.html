@@ -1,15 +1,31 @@
 {% extends "base.html" %}
 {% block title %}Lesion Viewer - Subject List{% endblock %}
 {% block content %}
+
 <div class="container">
-    <h1 class="text-center mb-5">Lesion Viewer - Subject List</h1>
+    <h1 class="text-center mb-4">Lesion Viewer - Subject List</h1>
+
     <div class="row">
         <div class="col-md-8 offset-md-2">
-            <div class="card">
+            <div class="card mb-4">
                 <div class="card-body">
-                    <p class="lead">Welcome to the Lesion Viewer application. This tool allows you to view and annotate brain lesions for multiple subjects.</p>
+                    <h5 class="card-title">About Lesion Viewer</h5>
+                    <p class="card-text">
+                        Welcome to the Lesion Viewer application. This tool allows you to view and annotate brain lesions for multiple subjects. It provides a user-friendly interface for comparing lesion data from different readers and facilitates efficient analysis of neuroimaging results.
+                    </p>
+                    <p class="card-text">
+                        <small class="text-muted">Developed by Pablo Naval Baudin, 2024</small>
+                    </p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Select a Subject</h5>
+                </div>
+                <div class="card-body">
                     <p>Please select a subject from the list below to begin viewing and annotating lesions:</p>
-                    <ul class="list-group mt-4">
+                    <ul class="list-group">
                         {% for subject in subjects %}
                         <li class="list-group-item">
                             <a href="{{ url_for('view_subject', subject_id=subject) }}" class="subject-link">
@@ -24,4 +40,5 @@
         </div>
     </div>
 </div>
+
 {% endblock %}

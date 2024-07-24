@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %}</title>
     <link rel="stylesheet" href="{{ config['HTML_GENERATION']['BOOTSTRAP_CSS_URL'] }}">
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/icon.png') }}">
     <style>
         .lesion-image {
             width: 80vw;
@@ -19,25 +20,42 @@
             margin-left: auto;
             margin-right: auto;
         }
-		.alert-danger {
-			background-color: #ffe6e6;
-			color: #dc3545;
-		}
-
-		.alert-danger .bi-exclamation-triangle-fill {
-			color: #dc3545;
-		}		
+        .alert-danger {
+            background-color: #ffe6e6;
+            color: #dc3545;
+        }
+        .alert-danger .bi-exclamation-triangle-fill {
+            color: #dc3545;
+        }
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            font-size: 3rem;
+            font-weight: bold;
+        }
+        .navbar-brand img {
+            width: 150px;
+            height: 150x;
+            margin-right: 15px;
+        }
+        .navbar {
+            padding: 10px 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="/">Lesion Viewer</a>
+    <nav class="navbar navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <img src="{{ url_for('static', filename='images/icon.png') }}" alt="Lesion Viewer Logo">
+                Lesion Viewer
+            </a>
+        </div>
     </nav>
-
     <div class="container-fluid mt-4">
         {% block content %}{% endblock %}
     </div>
-
     <script src="{{ config['HTML_GENERATION']['JQUERY_URL'] }}"></script>
     <script src="{{ config['HTML_GENERATION']['POPPER_URL'] }}"></script>
     <script src="{{ config['HTML_GENERATION']['BOOTSTRAP_JS_URL'] }}"></script>
