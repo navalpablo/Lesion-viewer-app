@@ -19,10 +19,10 @@ Lesion Viewer is a tool designed to assist in reviewing segmentations by one or 
 ## Installation
 
 1. Clone this repository:
-```git clone https://github.com/yourusername/lesion-viewer.git`
-cd lesion-viewer```
+```git clone https://github.com/yourusername/lesion-viewer.git```
 
 2. Create a conda environment using the provided requirements.yaml:
+```cd lesion-viewer```
 ```conda env create -f requirements.yaml```
 
 3. Activate the environment:
