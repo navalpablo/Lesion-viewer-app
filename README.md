@@ -80,8 +80,5 @@ The pipeline expects a specific directory structure for the input data:
 ## Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## License
-This project is licensed under the MIT License - see the LICENSE file for details. However, it uses multiple other tools and inherits their licensing.
-
 ## Contact
 If you have any questions or feedback, please open an issue on this repository.
