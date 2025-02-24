@@ -58,8 +58,9 @@ def main():
     This script orchestrates the entire lesion processing pipeline, including:
     1. Isolating lesions
     2. Matching lesions
-    3. Processing images
-    4. Running the web application
+    3. Processing images for viewer
+    4. Generating static HTML pages for a fast, robust viewer
+    5. Optionally starting the dynamic web application
 
     The pipeline expects a specific directory structure for the input data:
 
@@ -90,8 +91,9 @@ def main():
     │   ├── sub-001_001_002.jpg
     │   └── ...
     ├── lesion_comparison_results.tsv
-    └── annotations.tsv
-
+    ├── annotations.tsv
+    └── static_html/      (generated static HTML files)
+    
     The pipeline can be run in its entirety or step-by-step using the --steps argument.
     """, formatter_class=argparse.RawTextHelpFormatter)
 
@@ -99,15 +101,16 @@ def main():
     parser.add_argument("--output", required=True, help="Output directory for processed data")
     parser.add_argument("--overwrite", action="store_true", help="Overwrite existing files in the output directory")
     parser.add_argument("--smooth", action="store_true", help="Apply smoothing to masks before isolating lesions")
-    parser.add_argument("--steps", nargs='+', choices=['isolate', 'match', 'process', 'web'], 
-                        default=['isolate', 'match', 'process', 'web'],
+    parser.add_argument("--steps", nargs='+', choices=['isolate', 'match', 'process', 'static', 'web'], 
+                        default=['isolate', 'match', 'process', 'static'],
                         help="""
     Specify which steps of the pipeline to run. Options are:
     - isolate: Isolate individual lesions from the input masks
     - match: Match lesions between different readers
-    - process: Process images for web viewing
-    - web: Start the web application for lesion viewing and annotation
-    If not specified, all steps will be run in order.
+    - process: Process images for viewer
+    - static: Generate static HTML pages for viewer
+    - web: Start the dynamic web application (optional)
+    If not specified, the default steps are: isolate, match, process, static.
     """)
     
 
@@ -144,8 +147,12 @@ def main():
         process_args = ["--config", os.path.abspath("temp_config.ini")]
         run_script("image_processing.py", process_args)
 
+    if 'static' in args.steps:
+        print("Step 4: Generating static HTML pages")
+        run_script("generate_static_html.py", [])
+    
     if 'web' in args.steps:
-        print("Step 4: Starting web application")
+        print("Step 5: Starting web application")
         run_script("app.py", [])
 
     # Clean up temporary config file

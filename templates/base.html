@@ -1,64 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% endblock %}</title>
-    <link rel="stylesheet" href="{{ config['HTML_GENERATION']['BOOTSTRAP_CSS_URL'] }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/icon.png') }}">
-    <style>
-        .lesion-image {
-            width: 80vw;
-            max-width: 100%;
-            height: auto;
-            object-fit: contain;
-        }
-        .lesion-container {
-            width: 80vw;
-            max-width: 100%;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .alert-danger {
-            background-color: #ffe6e6;
-            color: #dc3545;
-        }
-        .alert-danger .bi-exclamation-triangle-fill {
-            color: #dc3545;
-        }
-        .navbar-brand {
-            display: flex;
-            align-items: center;
-            font-size: 3rem;
-            font-weight: bold;
-        }
-        .navbar-brand img {
-            width: 150px;
-            height: 150x;
-            margin-right: 15px;
-        }
-        .navbar {
-            padding: 10px 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,.1);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Lesion Viewer{% endblock %}</title>
+  <!-- Use the CDN links from the config (note uppercase section key) -->
+  <link rel="stylesheet" href="{{ config['HTML_GENERATION']['bootstrap_css_url'] }}">
+  <link rel="stylesheet" href="../static/css/custom.css">
+  <link rel="icon" type="image/png" href="../static/images/icon.png">
 </head>
 <body>
-    <nav class="navbar navbar-light bg-light">
-        <div class="container">
-            <a class="navbar-brand" href="#">
-                <img src="{{ url_for('static', filename='images/icon.png') }}" alt="Lesion Viewer Logo">
-                Lesion Viewer
-            </a>
-        </div>
-    </nav>
-    <div class="container-fluid mt-4">
-        {% block content %}{% endblock %}
+  <nav class="navbar navbar-light bg-light">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">
+        <img src="../static/images/icon.png" alt="Lesion Viewer Logo" style="width:150px; height:150px; margin-right:15px;">
+        Lesion Viewer
+      </a>
     </div>
-    <script src="{{ config['HTML_GENERATION']['JQUERY_URL'] }}"></script>
-    <script src="{{ config['HTML_GENERATION']['POPPER_URL'] }}"></script>
-    <script src="{{ config['HTML_GENERATION']['BOOTSTRAP_JS_URL'] }}"></script>
-    {% block extra_js %}{% endblock %}
+  </nav>
+  <div class="container-fluid mt-4">
+    {% block content %}{% endblock %}
+  </div>
+  <!-- Include JS from CDN using config and local JS -->
+  <script src="{{ config['HTML_GENERATION']['jquery_url'] }}"></script>
+  <script src="{{ config['HTML_GENERATION']['popper_url'] }}"></script>
+  <script src="{{ config['HTML_GENERATION']['bootstrap_js_url'] }}"></script>
+  <script src="../static/js/viewer.js"></script>
 </body>
 </html>
